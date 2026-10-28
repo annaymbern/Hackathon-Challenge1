@@ -5,6 +5,7 @@ This is our logbook. Every time we make an important decision, change direction 
 
 ## 28 Oct 2026
 - **Tasks:** merging and cleaning the data
+- **Realizations**: we realized that we wanted our solution to be more enviromentally orientated, so we are considering joining an additional csv about green scores. 
 
 ## 25 Oct 2026
 - **Found:** the dataset has no prices and doesn't say which products are own-brand.
