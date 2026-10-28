@@ -4,7 +4,7 @@ Patricia Cerdà, Helena Collart, Jana Biosca and Anna Ymbern
 This is our logbook. Every time we make an important decision, change direction or find a problem, we write it here: what we believed, what we found, what we decided and why. Newest entries go at the top.
 
 ## 28 Oct 2026
--**Tasks:** merging and cleaning the data
+- **Tasks:** merging and cleaning the data
 
 ## 25 Oct 2026
 - **Found:** the dataset has no prices and doesn't say which products are own-brand.
