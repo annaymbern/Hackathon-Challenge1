@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Generated datasets: rebuilt by src/build_yogurt_dataset.py.
+# The yogurt dataset is committed on purpose so the demo runs without a download.
+data/*.csv
+data/*.duckdb
+!data/yogurts_spain.duckdb
+!data/eval_set.csv
+!data/own_brands.csv
+
+# Scraper output
+precios_mercadona_yogures.csv
+
+# Local editor and OS files
+.vscode/
+.idea/
+.DS_Store
