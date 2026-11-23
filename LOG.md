@@ -3,6 +3,44 @@
 Patricia Cerdà, Helena Collart, Jana Biosca and Anna Ymbern
 This is our logbook. Every time we make an important decision, change direction or find a problem, we write it here: what we believed, what we found, what we decided and why. Newest entries go at the top.
 
+## 23 Nov 2026
+### We finally measured it: the baseline is better than we thought
+
+- **What we believed:** counting shared words was a weak method and the model would clearly beat it. We also believed our 30 hand-labelled yogurts would be enough to measure with.
+- **What we found:** two surprises.
+  - The baseline we declared in Work 3, counting shared words, is the weaker of the two simple methods. Dividing by the total number of words (Jaccard) scores 73.7% against 68.3%. Counting raw words sends short ingredient lists to products with long ones, so it collapses on plain yogurts: 43.9% against 82.6%.
+  - We do not need to label 30 yogurts by hand. Open Food Facts already tags subcategories (plain, Greek, fruit, drinkable, low fat) for 223 of our 300 products. Those tags are written by different contributors than the ingredient text, so they are independent of what our methods read.
+- **Decided:** we use the subcategory tags as our ground truth, we report both simple methods, and the model has to beat Jaccard, not only the baseline we declared.
+- **Why:** if we only compare against the method we chose in advance, we are beating the weaker rival and the result means less.
+
+### First numbers
+
+Over the 300 Spanish yogurts, percentage of the three suggestions that are the same type as the yogurt searched:
+
+| Method | All products | Held-out products |
+|---|---|---|
+| Random | 35.8% | 42.4% |
+| Shared word count (our declared baseline) | 68.3% | 65.4% |
+| Jaccard | 73.7% | 74.5% |
+
+- Both simple methods lose about 12 points when the yogurt's ingredients are not written in Spanish. Half our dataset is in Italian, English, German or Croatian, so this is where the model has to earn its place.
+- 77 of 300 products have no subcategory tag. We report those separately instead of counting them as mistakes, because that is a gap in the dataset, not a failure of the method.
+
+### What we built
+
+- `src/evaluation.py` decides what counts as a correct suggestion and writes `data/eval_set.csv`.
+- `src/baselines.py` has the two simple methods and a random one, so we know the floor.
+- `src/benchmark.py` runs every method over the same products and prints the table.
+- `src/similarity.py` is the embedding model: it turns name plus ingredients into numbers and finds the nearest products.
+- `src/finetune.py` adjusts the model on our own products, using the subcategory tags to build training examples.
+
+### Two decisions inside the training
+
+- **We hold out 66 products before training.** The model never sees them, and they are the ones we measure with. Measuring on products it was trained on would give a good mark for memorising the answers.
+- **We choose the negative examples ourselves.** The usual shortcut is to treat any other product in the batch as "different", but with only five types that is often another plain yogurt. We would be teaching the model that two plain yogurts are unrelated. Instead, the "different" product always shares no type at all.
+
+- **Still open:** the model has not been run yet, so we do not know whether it beats Jaccard. Also pending: checking by hand the 29 products marked `core` in `eval_set.csv`, to see how often the Open Food Facts tags are wrong.
+
 ## 10 Nov 2026
 ### Change of approach: from own-brand dupes to similar products with prices
 - **What we believed:** the most useful tool was a private-label dupe finder: pick a branded yogurt and get its own-brand equivalent.
