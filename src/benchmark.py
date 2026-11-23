@@ -121,6 +121,11 @@ def main():
                         help="'baselines' (default), 'all', or a comma-separated list.")
     parser.add_argument('--k', type=int, default=3, help='Suggestions per query.')
     parser.add_argument('--database', default=None, help='DuckDB file to read.')
+    parser.add_argument('--split', default='all', choices=['all', 'train', 'test'],
+                        help="Which products to use as queries. Use 'test' once "
+                             'finetune.py has run: those products were held out '
+                             'of training, so every method is measured on products '
+                             'none of them was trained on.')
     parser.add_argument('--save', default=None,
                         help='Write the per-suggestion verdicts to this CSV.')
     args = parser.parse_args()
@@ -129,10 +134,25 @@ def main():
     coverage = coverage_report(products)
     queries = [i for i, t in enumerate(products['types']) if t]
 
+    if args.split != 'all':
+        split_path = PROJECT_ROOT / 'data' / 'train_test_split.csv'
+        if not split_path.exists():
+            raise SystemExit(f'{split_path} does not exist yet. '
+                             'Run src/finetune.py first, or use --split all.')
+        split = pd.read_csv(split_path, dtype={'barcode': str})
+        wanted_barcodes = set(split.loc[split['split'] == args.split, 'barcode'])
+        queries = [i for i in queries
+                   if str(products['barcode'].iloc[i]) in wanted_barcodes]
+
     print(f"Products in the corpus: {coverage['products']}")
     print(f"Usable as test queries: {len(queries)}"
           f" ({coverage['without_type_tag']} have no subcategory tag)")
+    if args.split != 'all':
+        print(f"Restricted to the '{args.split}' split.")
     print(f"Suggestions per query:  {args.k}\n")
+
+    if not queries:
+        raise SystemExit('No usable queries. Check the split and the data.')
 
     wanted = available_methods(include_models=args.methods != 'baselines')
     if args.methods not in ('baselines', 'all'):

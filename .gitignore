@@ -11,6 +11,7 @@ data/*.csv
 data/*.duckdb
 !data/yogurts_spain.duckdb
 !data/eval_set.csv
+!data/train_test_split.csv
 !data/own_brands.csv
 
 # Scraper output
