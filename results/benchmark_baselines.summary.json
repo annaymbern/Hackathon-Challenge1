@@ -1,0 +1,29 @@
+{
+  "random": {
+    "suggestions": 669,
+    "judged": 495,
+    "unknown_pct": 26.00896860986547,
+    "precision_at_3": 35.75757575757576,
+    "hit_at_3": 58.18181818181818,
+    "precision_spanish_query": 36.027713625866056,
+    "precision_other_query": 33.87096774193548
+  },
+  "word_overlap": {
+    "suggestions": 669,
+    "judged": 565,
+    "unknown_pct": 15.54559043348281,
+    "precision_at_3": 68.31858407079646,
+    "hit_at_3": 85.97285067873304,
+    "precision_spanish_query": 69.1683569979716,
+    "precision_other_query": 62.5
+  },
+  "jaccard": {
+    "suggestions": 669,
+    "judged": 558,
+    "unknown_pct": 16.591928251121075,
+    "precision_at_3": 73.65591397849462,
+    "hit_at_3": 88.28828828828829,
+    "precision_spanish_query": 75.20491803278688,
+    "precision_other_query": 62.857142857142854
+  }
+}

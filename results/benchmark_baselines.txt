@@ -1,0 +1,42 @@
+Products in the corpus: 300
+Usable as test queries: 223 (77 have no subcategory tag)
+Suggestions per query:  3
+
+--- random ---
+            queries precision_at_3
+first_type                        
+drinkable        84      23.809524
+fruit           157      37.579618
+greek           103      44.660194
+low_fat          15      33.333333
+plain           136      34.558824
+
+--- word_overlap ---
+            queries precision_at_3
+first_type                        
+drinkable        91      67.032967
+fruit           179      78.212291
+greek           131      84.732824
+low_fat          16          56.25
+plain           148      43.918919
+
+--- jaccard ---
+            queries precision_at_3
+first_type                        
+drinkable        88      56.818182
+fruit           176      67.613636
+greek           130      82.307692
+low_fat          15           80.0
+plain           149      82.550336
+
+=== Summary (%) ===
+              precision@3  hit@3  prec. ES query  prec. other lang  % unjudgeable  judged
+random               35.8   58.2            36.0              33.9           26.0   495.0
+word_overlap         68.3   86.0            69.2              62.5           15.5   565.0
+jaccard              73.7   88.3            75.2              62.9           16.6   558.0
+
+Declared baseline (word_overlap) precision@3: 68.3%
+Decision rule from Work 3: keep the embeddings only if they beat this by 10 points or more, so they need 78.3%.
+
+Per-suggestion verdicts: ../results/benchmark_baselines.csv
+Summary:                 ../results/benchmark_baselines.summary.json
