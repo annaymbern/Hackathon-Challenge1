@@ -1,0 +1,30 @@
+Benchmark on the held-out test products, 25 Nov 2026
+====================================================
+Products in the corpus: 300
+Usable as test queries: 66 (77 have no subcategory tag)
+Restricted to the 'test' split.
+Suggestions per query:  3
+
+=== Summary (%) ===
+                      precision@3  hit@3  prec. ES query  prec. other lang  % unjudgeable  judged
+random                       42.4   63.1            46.3              21.7           27.3   144.0
+word_overlap                 65.4   83.1            67.1              54.5           18.2   162.0
+jaccard                      74.5   89.4            77.4              58.3           18.7   161.0
+embeddings                   81.9   89.1            84.1              68.2           19.2   160.0
+embeddings_finetuned         87.4   95.5            87.9              84.6           15.7   167.0
+
+Declared baseline (word_overlap) precision@3: 65.4%
+Decision rule from Work 3: keep the embeddings only if they beat this by 10
+points or more, so they need 75.4%.
+
+precision@3 by what the user searched for
+=========================================
+                 random  word_overlap  jaccard  embeddings  finetuned
+drinkable          33.3          52.6     50.0        46.7       64.3
+fruit              38.6          69.8     67.4        77.3       77.6
+greek              51.4          87.5     80.0        89.6       98.0
+low_fat            66.7          33.3    100.0       100.0      100.0
+plain              40.5          46.9     82.4        88.5       92.5
+
+low_fat has only one to three queries in the test split, so its percentages
+mean nothing. We report them for completeness, not as evidence.

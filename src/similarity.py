@@ -148,35 +148,53 @@ def main():
                         help='Model name, or a path to a finetuned one.')
     parser.add_argument('--barcode', default=None,
                         help='Show the most similar products to this one.')
+    parser.add_argument('--index', type=int, default=0,
+                        help='Which product to use as the query, by row number.')
     parser.add_argument('--k', type=int, default=3)
     parser.add_argument('--no-cache', action='store_true')
+    parser.add_argument('--compare', action='store_true',
+                        help='Show the pretrained and the finetuned model side '
+                             'by side, so you can read the actual suggestions '
+                             'instead of trusting the score.')
     args = parser.parse_args()
 
     from evaluation import load_products
 
     products = load_products()
-    vectors = embed(products['text'], args.model, use_cache=not args.no_cache)
-    print(f'Encoded {len(products)} products into {vectors.shape[1]} numbers each.\n')
 
     if args.barcode:
-        matches = products.index[products['barcode'] == args.barcode]
+        matches = products.index[products['barcode'].astype(str) == str(args.barcode)]
         if len(matches) == 0:
             raise SystemExit(f'No product with barcode {args.barcode}.')
         query_index = int(matches[0])
     else:
-        query_index = 0
+        query_index = args.index
+    if not 0 <= query_index < len(products):
+        raise SystemExit(f'--index must be between 0 and {len(products) - 1}.')
 
     query = products.iloc[query_index]
     print(f"Query: {query['product_name']}  ({query['brands']})")
     print(f"  types: {'|'.join(sorted(query['types'])) or 'unknown'}")
-    print(f"  ingredients: {str(query['ingredients_text'])[:100]}\n")
-    print(f'Most similar {args.k}:')
-    for position, index in enumerate(rank_with(vectors, query_index, args.k), start=1):
-        other = products.iloc[index]
-        score = float(vectors[index] @ vectors[query_index])
-        print(f"  {position}. {other['product_name']}  ({other['brands']})")
-        print(f"     similarity {score:.3f}"
-              f"   types: {'|'.join(sorted(other['types'])) or 'unknown'}")
+    print(f"  ingredients: {str(query['ingredients_text'])[:110]}\n")
+
+    models = [('pretrained', args.model)]
+    if args.compare:
+        if not FINETUNED_DIR.exists():
+            raise SystemExit(f'No finetuned model at {FINETUNED_DIR}. '
+                             'Run src/finetune.py first.')
+        models.append(('finetuned', str(FINETUNED_DIR)))
+
+    for label, model_name in models:
+        vectors = embed(products['text'], model_name, use_cache=not args.no_cache)
+        print(f'--- {label} ---')
+        for position, index in enumerate(rank_with(vectors, query_index, args.k), start=1):
+            other = products.iloc[index]
+            score = float(vectors[index] @ vectors[query_index])
+            shared = '|'.join(sorted(other['types'])) or 'unknown'
+            same = '' if not (other['types'] & query['types']) else '  <- same type'
+            print(f"  {position}. {other['product_name']}  ({other['brands']})")
+            print(f"     similarity {score:.3f}   types: {shared}{same}")
+        print()
 
 
 if __name__ == '__main__':
