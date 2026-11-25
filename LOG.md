@@ -3,6 +3,47 @@
 Patricia Cerdà, Helena Collart, Jana Biosca and Anna Ymbern
 This is our logbook. Every time we make an important decision, change direction or find a problem, we write it here: what we believed, what we found, what we decided and why. Newest entries go at the top.
 
+## 25 Nov 2026
+### The model works, and it works for the reason we expected
+
+- **What we believed:** embeddings would beat counting words, mostly because half our yogurts have their ingredients written in a language other than Spanish.
+- **What we found:** both parts were right, and the second one by a wide margin.
+- **Decided:** we keep the finetuned model. It is the one the demo will use.
+
+### The comparison
+
+All five methods over the same 66 held-out products, which none of them was trained on. Percentage of the three suggestions that are the same type as the yogurt searched:
+
+| Method | Overall | Query in Spanish | Query in another language |
+|---|---|---|---|
+| Random | 42.4% | 46.3% | 21.7% |
+| Shared word count (declared baseline) | 65.4% | 67.1% | 54.5% |
+| Jaccard | 74.5% | 77.4% | 58.3% |
+| Pretrained embeddings | 81.9% | 84.1% | 68.2% |
+| **Finetuned embeddings** | **87.4%** | **87.9%** | **84.6%** |
+
+- **Our rule from Work 3 was to keep the embeddings only if they beat the baseline by 10 points.** They beat it by 22. They also beat Jaccard, the stronger simple method, by 12.9.
+- **The language column is the real result.** The simple methods lose about 19 points when the ingredients are not in Spanish. The finetuned model loses 3. It nearly removes the problem that made us choose embeddings in the first place.
+- Finetuning added 5.5 points over the pretrained model, so training on our own products was worth doing.
+- In 95.5% of searches at least one of the three suggestions was a reasonable alternative.
+
+### Where it is still weak
+
+- Drinkable yogurts: 64.3%, the worst of the five types, though still better than Jaccard's 50%. If we have to narrow the demo, that is the type to warn about.
+- `low_fat` shows 100%, but there are only one to three such products in the test split. That number means nothing and we are not claiming it.
+- 66 test products is a small sample. The gap between the finetuned model and the simple methods is large enough to be convincing; the differences between the top two are not.
+
+### The caveat we are not hiding
+
+The model is trained on the Open Food Facts subcategory tags and then measured on those same tags. The products are held out, so it has not memorised the answers, but the task it is scored on is the task it was trained for. What this proves is that it learned the structure of the categories, which is a bit easier than proving it finds alternatives a shopper would actually accept.
+
+Checking by hand the 29 products marked `core` in `eval_set.csv` is what would close that gap, and it is still pending.
+
+### Fixed along the way
+
+- The DuckDB file would not open in Colab: a database can only be read by the same storage version or newer. The products are now also stored as Parquet, which opens anywhere, and that is what the code reads.
+- The notebook's first cell did nothing when re-run, because `git clone` refuses to write into an existing directory, so fixes we pushed never reached it.
+
 ## 23 Nov 2026
 ### We finally measured it: the baseline is better than we thought
 
