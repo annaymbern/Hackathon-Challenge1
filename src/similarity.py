@@ -24,6 +24,7 @@ Run it on its own to encode the products and see an example:
 """
 import argparse
 import hashlib
+import os
 from pathlib import Path
 
 import numpy as np
@@ -31,6 +32,12 @@ import numpy as np
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = PROJECT_ROOT / 'data' / 'embeddings'
 FINETUNED_DIR = PROJECT_ROOT / 'models' / 'finetuned'
+
+# Where the finetuned model lives when it is not on this machine. It weighs
+# about 450 MB, too much for the repository, and Colab deletes it when the
+# session ends, so it is published on the Hugging Face Hub instead and
+# downloaded on first use. Set YOGURT_MODEL_ID to override.
+HUB_MODEL_ID = os.environ.get('YOGURT_MODEL_ID', '')
 
 # Small, fast, and trained on fifty languages. The size matters here: it runs
 # in a couple of minutes on a laptop with no GPU, which is what the four of us
@@ -132,13 +139,25 @@ def rank_embeddings(products, query_index, k=3):
     return _ranker(DEFAULT_MODEL)(products, query_index, k)
 
 
+def finetuned_model_name():
+    """Where to get our finetuned model, or None if there is nowhere to get it.
+
+    A local copy wins over the Hub: if someone has just retrained it, that is
+    the version they want to test, not the one published last week.
+    """
+    if FINETUNED_DIR.exists():
+        return str(FINETUNED_DIR)
+    return HUB_MODEL_ID or None
+
+
 #: Registered so `python src/benchmark.py --methods all` picks them up.
-#: The finetuned entry only appears once finetune.py has produced a model, so
+#: The finetuned entry only appears when there is a finetuned model to use, so
 #: the benchmark never claims to measure something that does not exist yet.
 METHODS = {'embeddings': _ranker(DEFAULT_MODEL)}
 
-if FINETUNED_DIR.exists():
-    METHODS['embeddings_finetuned'] = _ranker(str(FINETUNED_DIR))
+_finetuned = finetuned_model_name()
+if _finetuned:
+    METHODS['embeddings_finetuned'] = _ranker(_finetuned)
 
 
 def main():
@@ -179,10 +198,11 @@ def main():
 
     models = [('pretrained', args.model)]
     if args.compare:
-        if not FINETUNED_DIR.exists():
-            raise SystemExit(f'No finetuned model at {FINETUNED_DIR}. '
-                             'Run src/finetune.py first.')
-        models.append(('finetuned', str(FINETUNED_DIR)))
+        finetuned = finetuned_model_name()
+        if not finetuned:
+            raise SystemExit(f'No finetuned model at {FINETUNED_DIR} and no '
+                             'YOGURT_MODEL_ID set. Run src/finetune.py first.')
+        models.append(('finetuned', finetuned))
 
     for label, model_name in models:
         vectors = embed(products['text'], model_name, use_cache=not args.no_cache)

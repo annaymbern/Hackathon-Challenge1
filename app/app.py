@@ -29,7 +29,8 @@ sys.path.insert(0, str(PROJECT_ROOT / 'src'))
 
 from evaluation import load_products          # noqa: E402
 from pricing import describe_price, price_per_kilo  # noqa: E402
-from similarity import DEFAULT_MODEL, FINETUNED_DIR, embed, rank_with  # noqa: E402
+from similarity import (DEFAULT_MODEL, FINETUNED_DIR, embed,  # noqa: E402
+                        finetuned_model_name, rank_with)
 
 st.set_page_config(page_title='Similar yogurts', page_icon='🥛', layout='wide')
 
@@ -98,7 +99,8 @@ def main():
 
     products = get_products()
 
-    finetuned_available = FINETUNED_DIR.exists()
+    finetuned = finetuned_model_name()
+    finetuned_available = finetuned is not None
     with st.sidebar:
         st.header('Settings')
         how_many = st.slider('Suggestions', 1, 10, 3)
@@ -110,12 +112,14 @@ def main():
 
         st.divider()
         if finetuned_available:
-            st.success('Using the model we finetuned on our products.')
+            where = ('trained on this machine' if FINETUNED_DIR.exists()
+                     else f'downloaded from {finetuned}')
+            st.success(f'Using the model we finetuned on our products, {where}.')
         else:
-            st.warning('The finetuned model is not here, so this is running on '
-                       'the pretrained one. Results will be worse than the '
-                       'numbers in our log. Run `python src/finetune.py` to '
-                       'build it.')
+            st.warning('The finetuned model is not available, so this is '
+                       'running on the pretrained one. Results will be worse '
+                       'than the numbers in our log. Run '
+                       '`python src/finetune.py` to build it.')
         st.caption(f'{len(products)} yogurts sold in Spain. '
                    f"{int(products['price_eur'].notna().sum())} have a price.")
 
@@ -143,7 +147,7 @@ def main():
     st.divider()
 
     models = [('Our finetuned model' if finetuned_available else 'Pretrained model',
-               str(FINETUNED_DIR) if finetuned_available else DEFAULT_MODEL)]
+               finetuned if finetuned_available else DEFAULT_MODEL)]
     if compare and finetuned_available:
         models.append(('Pretrained model, for comparison', DEFAULT_MODEL))
 
