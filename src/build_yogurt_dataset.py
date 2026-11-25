@@ -378,6 +378,13 @@ def run(output_path=None, max_products=300, product_mode='auto',
         duckdb_path = output_path.with_suffix('.duckdb')
         save_duckdb(products, duckdb_path, table)
         print(f'    DuckDB database: {duckdb_path} (table "{table}")', flush=True)
+        # Also written as Parquet, because a DuckDB file can only be opened by
+        # a DuckDB of the same storage version or newer: the database built on
+        # a laptop with the latest version would not open in Colab. Parquet
+        # opens anywhere, so it is what the rest of the code reads.
+        parquet_path = output_path.with_suffix('.parquet')
+        products.to_parquet(parquet_path, index=False)
+        print(f'    Parquet copy:    {parquet_path}', flush=True)
     else:
         print(f'3/3 Prepared {len(products):,} products in memory; no CSV was saved.', flush=True)
     print(f'    Products with observed Spanish EUR prices: {products.price_eur.notna().sum():,}')

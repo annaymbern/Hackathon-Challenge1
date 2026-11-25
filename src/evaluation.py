@@ -74,20 +74,44 @@ def judge(query_types, suggestion_types):
     return bool(query_types & suggestion_types)
 
 
-def load_products(database_path=None, table='yogurts'):
-    """The product table with the columns every method and the metric need."""
-    import duckdb
+def _read_table(database_path, table):
+    """Read the products, preferring the Parquet copy over the DuckDB one.
 
-    database_path = Path(database_path or DATA_DIR / 'yogurts_spain.duckdb')
-    if not database_path.exists():
-        raise FileNotFoundError(
-            f'{database_path} not found. Run src/build_yogurt_dataset.py first.')
-    con = duckdb.connect(str(database_path), read_only=True)
+    A DuckDB file can only be opened by a DuckDB of the same storage version or
+    newer, so the database built on one of our laptops would not open in Colab,
+    which installs an older DuckDB. Parquet has no such problem: any version of
+    pandas reads any Parquet file. We keep both, the database because SQL over
+    it is convenient while exploring, and the Parquet because it is the one
+    that always opens.
+    """
+    parquet_path = Path(database_path).with_suffix('.parquet')
+    if parquet_path.exists():
+        return pd.read_parquet(parquet_path)
+
+    import duckdb
     try:
-        products = con.execute(f'SELECT * FROM "{table}"').df()
+        con = duckdb.connect(str(database_path), read_only=True)
+    except Exception as exc:
+        raise RuntimeError(
+            f'Could not open {database_path}: {exc}\n'
+            f'No Parquet copy at {parquet_path} either. Rebuild them with:\n'
+            '    python src/build_yogurt_dataset.py') from exc
+    try:
+        return con.execute(f'SELECT * FROM "{table}"').df()
     finally:
         con.close()
 
+
+def load_products(database_path=None, table='yogurts'):
+    """The product table with the columns every method and the metric need."""
+    database_path = Path(database_path or DATA_DIR / 'yogurts_spain.duckdb')
+    parquet_path = database_path.with_suffix('.parquet')
+    if not database_path.exists() and not parquet_path.exists():
+        raise FileNotFoundError(
+            f'Neither {database_path} nor {parquet_path} exists. '
+            'Run src/build_yogurt_dataset.py first.')
+
+    products = _read_table(database_path, table)
     products = products.reset_index(drop=True)
     products['types'] = products['categories'].apply(types_of)
     products['text'] = [product_text(n, i) for n, i
