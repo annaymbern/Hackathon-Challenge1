@@ -3,6 +3,31 @@
 Patricia Cerdà, Helena Collart, Jana Biosca and Anna Ymbern
 This is our logbook. Every time we make an important decision, change direction or find a problem, we write it here: what we believed, what we found, what we decided and why. Newest entries go at the top.
 
+## 26 Nov 2026
+### We ran the training a second time and the per-type numbers moved
+
+- **What we believed:** the numbers from the 25th were the numbers.
+- **What we found:** training is random, so the second run produced a different model. The overall result held, the breakdown did not.
+
+| | Run 1 | Run 2 |
+|---|---|---|
+| precision@3 | 87.4% | 88.6% |
+| Query in another language | 84.6% | 86.2% |
+| Drinkable yogurts | 64.3% | **41.2%** |
+| Fruit yogurts | 77.6% | 86.4% |
+| Plain yogurts | 92.5% | 96.2% |
+
+- **Why it moves:** each type has between one and seventeen test queries. Two suggestions landing differently swing a percentage by twenty points. The simple methods do not move at all, because they involve no randomness.
+- **Decided:** we fixed the random seed, so rerunning the training reproduces the same model and anyone can check a number in this log.
+- **Also decided:** we quote the overall figure and the language split as results, and the per-type figures as a direction only. A seed makes a number repeatable; it does not make a sample of seventeen big enough.
+- **What this does not change:** both runs beat Jaccard by 13 to 14 points and both clear the rule we set in Work 3. The conclusion was never resting on the breakdown.
+
+### Shipped
+
+- The demo, `app/app.py`. Pick a yogurt, get the closest ones with their price per kilo and how much you save. There is a switch that puts the pretrained model next to ours on the same product, so anyone can check our claim live instead of taking the table on trust.
+- `src/pricing.py` reads the quantity field, which contributors write however they like, and converts prices to euros per kilo. It manages 248 of the 257 products that have a quantity. Where it cannot read the size, the app says so rather than guessing: an invented weight becomes an invented saving.
+- The finetuned model is published on the Hugging Face Hub, because it weighs 450 MB and Colab deletes it when the session ends. The code uses a local copy if there is one and downloads it otherwise, so the demo runs anywhere without retraining.
+
 ## 25 Nov 2026
 ### The model works, and it works for the reason we expected
 
