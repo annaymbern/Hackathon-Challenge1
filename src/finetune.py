@@ -101,11 +101,33 @@ def build_triplets(products, train_index, positives=POSITIVES_PER_PRODUCT, seed=
 
 
 def train(products, triplets, output_dir=OUTPUT_DIR, base_model=BASE_MODEL,
-          epochs=1, batch_size=16):
+          epochs=1, batch_size=16, seed=RANDOM_SEED):
     """Train and save. Imported lazily so the rest of the file can be read and
-    tested on a machine without the library."""
+    tested on a machine without the library.
+
+    The seed is set because training is random: the order of the batches and
+    the starting state of the new layers change every run. Our first two runs
+    scored 87.4% and 88.6% overall, which is fine, but the drinkable yogurts
+    went from 64.3% to 41.2% between them. With only seventeen of those in the
+    test set, two suggestions landing differently move the percentage by
+    twenty points.
+
+    Fixing the seed means running this twice gives the same model, so a number
+    in our log can be checked by anyone who reruns it. It does not make the
+    small per-type numbers any more trustworthy: that would take more test
+    products, not a seed.
+    """
+    import random
+
+    import torch
     from sentence_transformers import InputExample, SentenceTransformer, losses
     from torch.utils.data import DataLoader
+
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
     model = SentenceTransformer(base_model)
     text = products['text'].tolist()
@@ -134,6 +156,9 @@ def main():
     parser.add_argument('--batch-size', type=int, default=16)
     parser.add_argument('--positives', type=int, default=POSITIVES_PER_PRODUCT)
     parser.add_argument('--base-model', default=BASE_MODEL)
+    parser.add_argument('--seed', type=int, default=RANDOM_SEED,
+                        help='Training is random; fixing this makes two runs '
+                             'produce the same model.')
     parser.add_argument('--output', default=str(OUTPUT_DIR))
     parser.add_argument('--dry-run', action='store_true',
                         help='Build the split and the triplets, then stop. '
@@ -169,7 +194,7 @@ def main():
         raise SystemExit('No training triplets could be built.')
 
     saved = train(products, triplets, args.output, args.base_model,
-                  args.epochs, args.batch_size)
+                  args.epochs, args.batch_size, args.seed)
     print(f'\nSaved the finetuned model to {saved}')
     print('Now compare it against everything else:')
     print('    python src/benchmark.py --methods all --split test')
