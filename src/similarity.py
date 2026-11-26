@@ -37,7 +37,7 @@ FINETUNED_DIR = PROJECT_ROOT / 'models' / 'finetuned'
 # about 450 MB, too much for the repository, and Colab deletes it when the
 # session ends, so it is published on the Hugging Face Hub instead and
 # downloaded on first use. Set YOGURT_MODEL_ID to override.
-HUB_MODEL_ID = os.environ.get('YOGURT_MODEL_ID', '')
+HUB_MODEL_ID = os.environ.get('YOGURT_MODEL_ID', 'helenacollart/yogurt-similarity')
 
 # Small, fast, and trained on fifty languages. The size matters here: it runs
 # in a couple of minutes on a laptop with no GPU, which is what the four of us
