@@ -24,6 +24,9 @@ This is our logbook. Every time we make an important decision, change direction 
 
 ### Shipped
 
+- The README now assumes the reader knows nothing about the project: clone, install, run, three commands. We wrote it for the swap test, where another team has to get our repo running without asking us anything.
+- The finetuned model is published at `helenacollart/yogurt-similarity`, so the app downloads it instead of needing a training run first.
+
 - The demo, `app/app.py`. Pick a yogurt, get the closest ones with their price per kilo and how much you save. There is a switch that puts the pretrained model next to ours on the same product, so anyone can check our claim live instead of taking the table on trust.
 - `src/pricing.py` reads the quantity field, which contributors write however they like, and converts prices to euros per kilo. It manages 248 of the 257 products that have a quantity. Where it cannot read the size, the app says so rather than guessing: an invented weight becomes an invented saving.
 - The finetuned model is published on the Hugging Face Hub, because it weighs 450 MB and Colab deletes it when the session ends. The code uses a local copy if there is one and downloads it otherwise, so the demo runs anywhere without retraining.
