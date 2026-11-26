@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from pricing import merge_scraped_prices
 from textprep import product_text, product_tokens
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -113,6 +114,9 @@ def load_products(database_path=None, table='yogurts'):
 
     products = _read_table(database_path, table)
     products = products.reset_index(drop=True)
+    # Open Prices covers 8 of our products, so the Mercadona scrape fills the
+    # gaps where the barcodes match. It does nothing if nobody has run it.
+    products = merge_scraped_prices(products)
     products['types'] = products['categories'].apply(types_of)
     products['text'] = [product_text(n, i) for n, i
                         in zip(products['product_name'], products['ingredients_text'])]

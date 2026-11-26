@@ -19,9 +19,9 @@ Notas:
   - Los precios cambian según la zona (almacén). WAREHOUSE elige cuál; "mad1" = Madrid.
 """
 
-import json
 import time
 from datetime import date
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -32,7 +32,10 @@ PARAMS = {"lang": "es", "wh": WAREHOUSE}
 PAUSA_SEG = 1.5             # pausa entre peticiones: no bajar de 1 segundo
 HEADERS = {"User-Agent": "PAIBS-ESADE student project (uso academico)"}
 PALABRA = "yogur"           # categorías que buscamos
-SALIDA = "precios_mercadona_yogures.csv"
+# Se guarda dentro de data/ para que quede en el repositorio y el resto del
+# código lo encuentre solo. load_products() lo lee de ahí y completa los
+# precios que faltan en Open Prices.
+SALIDA = Path(__file__).resolve().parent.parent / "data" / "mercadona_prices.csv"
 
 
 def pedir(ruta):
@@ -105,7 +108,8 @@ def main():
             print(f"  ✓ {p.get('display_name')} – {pi.get('unit_price')} €")
 
     df = pd.DataFrame(filas)
-    df.to_csv(SALIDA, index=False)
+    SALIDA.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(SALIDA, index=False, encoding="utf-8-sig")
     print(f"\nGuardado {len(df)} productos en {SALIDA}")
     print(f"Con código de barras: {df['barcode'].notna().sum()}")
     print(f"Marcas: {df['marca'].value_counts().to_dict()}")

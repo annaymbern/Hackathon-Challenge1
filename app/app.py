@@ -120,8 +120,13 @@ def main():
                        'running on the pretrained one. Results will be worse '
                        'than the numbers in our log. Run '
                        '`python src/finetune.py` to build it.')
+        with_price = int(products['price_eur'].notna().sum())
+        from_scrape = products.attrs.get('prices_from_mercadona', 0)
+        source = (f' {from_scrape} of them scraped from Mercadona, the rest '
+                  'from Open Prices.' if from_scrape else
+                  ' All from Open Prices. Run src/mercadona_yogures.py for more.')
         st.caption(f'{len(products)} yogurts sold in Spain. '
-                   f"{int(products['price_eur'].notna().sum())} have a price.")
+                   f'{with_price} have a price.{source}')
 
     names = [f"{row['product_name'] or '(no name)'} — {row['brands'] or 'unknown brand'}"
              for _, row in products.iterrows()]

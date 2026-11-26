@@ -13,10 +13,9 @@ data/*.duckdb
 !data/eval_set.csv
 !data/train_test_split.csv
 !data/yogurts_spain.parquet
+!data/mercadona_prices.csv
 !data/own_brands.csv
 
-# Scraper output
-precios_mercadona_yogures.csv
 
 # Local editor and OS files
 .vscode/

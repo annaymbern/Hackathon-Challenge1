@@ -13,6 +13,7 @@ real is worse than no saving at all: the point of the tool is that the user
 trusts the number enough to act on it in the supermarket.
 """
 import re
+from pathlib import Path
 
 # "4 x 125 g", "2 x 130g", "8 x 125 g": a pack. The total is the product of
 # the two numbers, and it is checked before the single-quantity patterns
@@ -94,6 +95,68 @@ def price_per_kilo(price_eur, quantity):
     return price * 1000.0 / grams
 
 
+def merge_scraped_prices(products, csv_path=None):
+    """Fill in missing prices from the Mercadona scrape.
+
+    Open Prices covers 8 of our 300 products, which is not enough to show a
+    saving, so we also read prices off Mercadona's own site with
+    src/mercadona_yogures.py. The two are joined on the barcode, the only
+    identifier both sides share.
+
+    An Open Prices figure is never overwritten. That dataset is a public
+    record of a price somebody observed in a named shop on a named day, and
+    replacing it with ours would throw away the better evidence. We only fill
+    the gaps, and every filled row is marked so the app can say where the
+    number came from.
+    """
+    csv_path = Path(csv_path or Path(__file__).resolve().parent.parent
+                    / 'data' / 'mercadona_prices.csv')
+    if not csv_path.exists():
+        return products
+
+    import pandas as pd
+
+    scraped = pd.read_csv(csv_path, dtype=str)
+    if 'barcode' not in scraped or 'precio_eur' not in scraped:
+        return products
+
+    # Barcodes arrive as text on one side and numbers on the other, and some
+    # carry a leading zero that a numeric read would eat.
+    lookup = {}
+    for _, row in scraped.iterrows():
+        code = str(row.get('barcode') or '').strip().lstrip("'")
+        if not code or code.lower() == 'nan':
+            continue
+        try:
+            price = float(str(row.get('precio_eur')).replace(',', '.'))
+        except (TypeError, ValueError):
+            continue
+        if price > 0:
+            lookup[code] = (price, row.get('fecha'))
+
+    if not lookup:
+        return products
+
+    products = products.copy()
+    filled = 0
+    for position, code in enumerate(products['barcode'].astype(str)):
+        existing = products['price_eur'].iloc[position]
+        if existing is not None and existing == existing:  # not NaN
+            continue
+        match = lookup.get(code.strip())
+        if not match:
+            continue
+        price, observed_on = match
+        products.iloc[position, products.columns.get_loc('price_eur')] = price
+        products.iloc[position, products.columns.get_loc('price_store')] = 'Mercadona'
+        if 'price_date' in products.columns and observed_on:
+            products.iloc[position, products.columns.get_loc('price_date')] = observed_on
+        filled += 1
+
+    products.attrs['prices_from_mercadona'] = filled
+    return products
+
+
 def describe_price(row):
     """One short line about the price, honest about what is missing.
 
@@ -103,7 +166,9 @@ def describe_price(row):
     price = row.get('price_eur')
     if price is None or (isinstance(price, float) and price != price):
         return 'no price'
+    store = row.get('price_store')
+    where = f' · {store}' if isinstance(store, str) and store.strip() else ''
     per_kilo = price_per_kilo(price, row.get('quantity'))
     if per_kilo is None:
-        return f'{float(price):.2f} EUR (size unknown, cannot compare)'
-    return f'{float(price):.2f} EUR  ({per_kilo:.2f} EUR/kg)'
+        return f'{float(price):.2f} EUR (size unknown, cannot compare){where}'
+    return f'{float(price):.2f} EUR  ({per_kilo:.2f} EUR/kg){where}'
