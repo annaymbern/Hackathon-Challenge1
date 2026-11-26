@@ -3,6 +3,23 @@
 Patricia Cerdà, Helena Collart, Jana Biosca and Anna Ymbern
 This is our logbook. Every time we make an important decision, change direction or find a problem, we write it here: what we believed, what we found, what we decided and why. Newest entries go at the top.
 
+## 26 Nov 2026 (evening)
+### Prices, and a demo that does not look like a homework exercise
+
+- **The Mercadona scraper works.** 83 yogurts with a barcode: 52 Hacendado, 6 Danone, the rest other brands. That is the only way we get enough prices, because Open Prices only covers 8 of our 300 products.
+- **Decided: we never overwrite an Open Prices figure with ours.** Open Prices is a public record of a price somebody saw in a named shop on a named day. Our scrape is one region on one afternoon. We fill the gaps only, and the app says which price came from where.
+- **Decided: the app never invents a weight.** When the quantity field cannot be read, it says "size unknown" instead of guessing, because an invented size turns into an invented saving, and a saving nobody can trust is worse than no saving at all.
+
+### The redesign
+
+The page was readable and ugly. It now follows the one layout every shopper in Spain already knows how to read: the shelf label. Product, then price, then underneath in small print the price per kilo, which is the figure that actually lets you compare a 125 g pot against a four-pack.
+
+- The similarity figure is the only loud thing on the page, with a measured bar under it. Everything else is deliberately quiet.
+- Green appears only on a saving. The shelf-tag yellow appears once, on the edge of the product you picked.
+- Prices are written the Spanish way, 1,79 € and 14,32 €/kg, because every price here comes from a Spanish shop.
+
+- **Still open:** we do not yet know how many of the 83 scraped barcodes match our 300 products. If the overlap is small, the prices are still thin and we say so in the demo rather than pretending otherwise.
+
 ## 26 Nov 2026
 ### We ran the training a second time and the per-type numbers moved
 

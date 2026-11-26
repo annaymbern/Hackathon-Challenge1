@@ -1,0 +1,12 @@
+# The page draws its own styling, so Streamlit's own chrome is set to match
+# rather than fight it.
+[theme]
+base = "light"
+primaryColor = "#2F6B46"
+backgroundColor = "#F6F7F4"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#17201C"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
